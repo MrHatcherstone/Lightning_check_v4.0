@@ -19,7 +19,7 @@ int int_G = 0;
 int int_B = 0;
 bool workIsFinished = true;
 bool globalBreak = false;
-
+String mainPage = "";
 
 
 // ssid/password вафли и порт сервера
@@ -27,65 +27,11 @@ extern const char* ssid;
 extern const char* password;
 ESP8266WebServer server(4599);
 
-/*                          Главная страница, отображается при переходе по IP                             */
-
-const char MAIN_page[] PROGMEM = R"=====(
-<!DOCTYPE html>
-<html>
-  <body>
-    <form action="/action_page">
-    Type:
-    <br>
-      <select size="1" name="str_type">
-        <option>zerolight</option>
-        <option>Static</option>
-        <option>WeelColour</option>
-        <option>WeelColourReverse</option>
-        <option>Blackout</option>
-        <option>Comet</option>
-        <option>Random</option>
-        <option>Fill</option>
-        <option>Bryak</option>
-      <select>
-    <br>
-      Red colour:
-    <br>
-      <input type="text" name="str_R" value="0..255">
-    <br>
-      Green colour:
-    <br>
-      <input type="text" name="str_G" value="0..255">
-    <br>
-      Blue colour:
-    <br>
-      <input type="text" name="str_B" value="0..255">
-    <br>
-      Speed:
-    <br>
-      <input type="text" name="Speed" value="40">
-    <br>
-      Brightness:
-    <br>
-      <input type="text" name="Brightness" value="100">
-    <br>
-      Break:
-    <br>
-      <input type="text" name="Break" value="0">
-    <br>
-    <br>
-      <input type="submit" value="Submit">
-  </body>
-</html>
-)=====";
-
-
-
 //the Wemos WS2812B RGB shield has 1 LED connected to pin 2
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(2*pix_length, PIN, NEO_GRB + NEO_KHZ800);
 int pix_count = 2 * pix_length;
 
-void staticColour(int int_R, int int_G, int int_B) 
-{
+void staticColour(){
   pixels.setPixelColor(ledPosition, pixels.Color(int_R * ledBright / 100, int_G * ledBright / 100, int_B * ledBright / 100)); 
   pixels.show();
   delay(ledSpeed);
@@ -96,51 +42,50 @@ void staticColour(int int_R, int int_G, int int_B)
       workIsFinished = true;
 }
 
-void WeelColour ()
-{
-  int _r, _g, _b = 0;
+void WeelColour (){
+  //int _r, _g, _b = 0;
   if (colour <= 255) // красный макс, зелёный растёт
   {
-    _r = 255;
-    _g = colour;
-    _b = 0;
+    int_R = 255;
+    int_G = colour;
+    int_B = 0;
   }
   if ((colour > 255) && (colour <= 510)) // зелёный макс, падает красный
   {
-    _r = 510 - colour;
-    _g = 255;
-    _b = 0;
+    int_R = 510 - colour;
+    int_G = 255;
+    int_B = 0;
   }
   if ((colour > 510) && (colour <= 765)) // зелёный макс, растёт синий
   {
-    _r = 0;
-    _g = 255;
-    _b = colour - 510;
+    int_R = 0;
+    int_G = 255;
+    int_B = colour - 510;
   }
   if ((colour > 765) && (colour <= 1020)) // синий макс, падает зелёный
   {
-    _r = 0;
-    _g = 1020 - colour;
-    _b = 255;
+    int_R = 0;
+    int_G = 1020 - colour;
+    int_B = 255;
   }
   if ((colour > 1020) && (colour <= 1275)) // синий макс, растёт красный
   {
-    _r = colour - 1020;
-    _g = 0;
-    _b = 255;
+    int_R = colour - 1020;
+    int_G = 0;
+    int_B = 255;
   }
   if ((colour > 1275) && (colour <= 1530)) // красный макс, падает синий
   {
-    _r = 255;
-    _g = 0;
-    _b = 1530 - colour;
+    int_R = 255;
+    int_G = 0;
+    int_B = 1530 - colour;
   }
 
-  _r = _r * ledBright / 100;
-  _g = _g * ledBright / 100;
-  _b = _b * ledBright / 100; 
+  int_R = int_R * ledBright / 100;
+  int_G = int_G * ledBright / 100;
+  int_B = int_B * ledBright / 100; 
   
-  pixels.setPixelColor(ledPosition, pixels.Color(_r, _g, _b)); 
+  pixels.setPixelColor(ledPosition, pixels.Color(int_R, int_G, int_B)); 
   pixels.show();    
   delay(ledSpeed);
   
@@ -154,51 +99,49 @@ void WeelColour ()
     ledPosition = 0;
 }
 
-void WeelColourReverse ()
-{
-  int _r, _g, _b = 0;
+void WeelColourReverse (){
   if (colour <= 255) // красный макс, зелёный растёт //красный макс, синий растёт 
   {  
-    _r = 255;
-    _g = 0;
-    _b = colour;
+    int_R = 255;
+    int_G = 0;
+    int_B = colour;
   }
   else if ((colour > 255) && (colour <= 510)) // синий макс, падает красный // синий макс, падает красный
   {
-    _r = 510 - colour;
-    _g = 0;
-    _b = 255;
+    int_R = 510 - colour;
+    int_G = 0;
+    int_B = 255;
   }
   else if ((colour > 510) && (colour <= 765)) // зелёный макс, растёт синий // синий макс, растёт зелёный
   {
-    _r = 0;
-    _g = colour - 510;
-    _b = 255;
+    int_R = 0;
+    int_G = colour - 510;
+    int_B = 255;
   }
   else if ((colour > 765) && (colour <= 1020)) // синий макс, падает зелёный // зелёный макс, падает синий
   {
-    _r = 0;
-    _g = 255;
-    _b = 1020 - colour;
+    int_R = 0;
+    int_G = 255;
+    int_B = 1020 - colour;
   }
   else if ((colour > 1020) && (colour <= 1275)) // синий макс, растёт красный // синий макс, растёт красный
   {
-    _r = colour - 1020;
-    _g = 255;
-    _b = 0;
+    int_R = colour - 1020;
+    int_G = 255;
+    int_B = 0;
   }
   else if ((colour > 1275) && (colour <= 1530)) // красный макс, падает синий // красный макс, зелёный падает 
   {
-    _r = 255;
-    _g = 1530 - colour;
-    _b = 0;
+    int_R = 255;
+    int_G = 1530 - colour;
+    int_B = 0;
   }
 
-  _r = _r * ledBright / 100;
-  _g = _g * ledBright / 100;
-  _b = _b * ledBright / 100; 
+  int_R = int_R * ledBright / 100;
+  int_G = int_G * ledBright / 100;
+  int_B = int_B * ledBright / 100; 
   
-  pixels.setPixelColor(ledPosition, pixels.Color(_r, _g, _b)); 
+  pixels.setPixelColor(ledPosition, pixels.Color(int_R, int_G, int_B)); 
   pixels.show();    
   delay(ledSpeed);
   
@@ -212,8 +155,7 @@ void WeelColourReverse ()
     ledPosition = 0;
 }
 
-void Randomizer ()
-{
+void Randomizer (){
   pixels.setPixelColor(ledPosition, pixels.Color((random (0,255) * ledBright / 100), (random (0,255) * ledBright / 100), (random (0,255) * ledBright / 100))); 
   pixels.show();    
   delay(ledSpeed);
@@ -222,8 +164,8 @@ void Randomizer ()
     ledPosition = 0;
 }
 
-void handleForm() 
-{
+void handleForm(){
+  mainPageupdater();
   String str_type = server.arg("str_type");
   int_R = (server.arg("str_R")).toInt();;
   int_G = (server.arg("str_G")).toInt();
@@ -231,13 +173,11 @@ void handleForm()
   ledSpeed = (server.arg("Speed")).toInt();
   ledBright = (server.arg("Brightness")).toInt();
   globalBreak = (server.arg("Break")).toInt();
-  Serial.println (ledPosition);
-  server.send(200, "text/html", MAIN_page, sizeof(MAIN_page));
+  server.send(200, "text/html", mainPage);
   if (globalBreak == 1) {
     lightningType = 0;
     return;
-  }
-  
+  } 
   if (str_type == "Static"){
     workIsFinished = false;
     lightningType = 1; 
@@ -250,41 +190,36 @@ void handleForm()
     return;
   }
   if (str_type == "WeelColourReverse"){
-  workIsFinished = false;
-  lightningType = 3;
-  return;
+    workIsFinished = false;
+    lightningType = 3;
+    return;
   }
   if (str_type == "Random"){
-  workIsFinished = false;
-  lightningType = 4;
-  return;
+    workIsFinished = false;
+    lightningType = 4;
+    return;
   }
 }
 
-// Ошибка в адресе
-void handleNotFound() {
-  String message = "File Not Found\n\n";
-  message += "URI: ";
-  message += server.uri();
-  message += "\nMethod: ";
-  message += (server.method() == HTTP_GET) ? "GET" : "POST";
-  message += "\nArguments: ";
-  message += server.args();
-  message += "\n";
-  message += server.args();
-  for (uint8_t i = 0; i < server.args(); i++) {
-    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-  }
-  server.send(404, "json/plain", message);
-}
-
-void handleRoot() 
-{
+void handleRoot(){
   Serial.println("Main IP");
-  server.send(200, "text/html", MAIN_page, sizeof(MAIN_page)); //Отправка страницы, sizeof для исключения переполнения буфера
+  mainPageupdater();
+  server.send(200, "text/html", mainPage);
 }
 
-void setup(void) {
+void mainPageupdater() {
+  mainPage = "<!DOCTYPE html><html><body><form action=\"/action_page\">Type:";
+  mainPage += "<br><select size=\"1\" name=\"str_type\"><option>Static</option><option>WeelColour</option><option>WeelColourReverse</option><option>Random</option><option>Fill</option><select>";
+  mainPage += "<br>Red colour:<br><input type=\"text\" name=\"str_R\" value=" + String(int_R) + ">";
+  mainPage += "<br>Green colour:<br><input type=\"text\" name=\"str_G\" value=" + String(int_G) + ">";
+  mainPage += "<br>Blue colour:<br><input type=\"text\" name=\"str_B\" value=" + String(int_B) + ">";
+  mainPage += "<br>Speed:<br><input type=\"text\" name=\"Speed\" value=" + String(ledSpeed) + ">";
+  mainPage += "<br>Brightness:<br><input type=\"text\" name=\"Brightness\" value=" + String(ledBright) + ">";
+  mainPage += "<br>Break:<br><input type=\"text\" name=\"Break\" value=\"0\"><br>";
+  mainPage += "<br><input type=\"submit\" value=\"Submit\"></body></html>"; 
+}
+
+void setup(void){
   pixels.begin();
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
@@ -303,18 +238,16 @@ void setup(void) {
   Serial.println(WiFi.localIP());
   server.on("/check", handleRoot);      //Which routine to handle at root location
   server.on("/action_page", handleForm); //form action is handled here
-  server.onNotFound(handleNotFound); // NotFound адрес 
   Serial.println("HTTP сервер запущен");
   server.begin();
 }
 
-void loop(void) { 
+void loop(void){ 
   server.handleClient();
-
   if (workIsFinished == false){
     switch (lightningType) {
         case 1:
-          staticColour(int_R, int_G, int_B);
+          staticColour();
           break;;
         case 2:
           WeelColour();
