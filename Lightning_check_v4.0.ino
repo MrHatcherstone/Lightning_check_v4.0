@@ -84,9 +84,8 @@ const char MAIN_page[] PROGMEM = R"=====(
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(2*pix_length, PIN, NEO_GRB + NEO_KHZ800);
 int pix_count = 2 * pix_length;
 
-void staticColour(int int_R, int int_G, int int_B, int ledSpeed, int ledBright) 
+void staticColour(int int_R, int int_G, int int_B) 
 {
-  //Serial.println ("staticColour enter");
   pixels.setPixelColor(ledPosition, pixels.Color(int_R * ledBright / 100, int_G * ledBright / 100, int_B * ledBright / 100)); 
   pixels.show();
   delay(ledSpeed);
@@ -97,10 +96,8 @@ void staticColour(int int_R, int int_G, int int_B, int ledSpeed, int ledBright)
       workIsFinished = true;
 }
 
-
-void WeelColour (int ledSpeed, int ledBright)
+void WeelColour ()
 {
-  //Serial.println ("WeelColour enter");
   int _r, _g, _b = 0;
   if (colour <= 255) // красный макс, зелёный растёт
   {
@@ -157,6 +154,74 @@ void WeelColour (int ledSpeed, int ledBright)
     ledPosition = 0;
 }
 
+void WeelColourReverse ()
+{
+  int _r, _g, _b = 0;
+  if (colour <= 255) // красный макс, зелёный растёт //красный макс, синий растёт 
+  {  
+    _r = 255;
+    _g = 0;
+    _b = colour;
+  }
+  else if ((colour > 255) && (colour <= 510)) // синий макс, падает красный // синий макс, падает красный
+  {
+    _r = 510 - colour;
+    _g = 0;
+    _b = 255;
+  }
+  else if ((colour > 510) && (colour <= 765)) // зелёный макс, растёт синий // синий макс, растёт зелёный
+  {
+    _r = 0;
+    _g = colour - 510;
+    _b = 255;
+  }
+  else if ((colour > 765) && (colour <= 1020)) // синий макс, падает зелёный // зелёный макс, падает синий
+  {
+    _r = 0;
+    _g = 255;
+    _b = 1020 - colour;
+  }
+  else if ((colour > 1020) && (colour <= 1275)) // синий макс, растёт красный // синий макс, растёт красный
+  {
+    _r = colour - 1020;
+    _g = 255;
+    _b = 0;
+  }
+  else if ((colour > 1275) && (colour <= 1530)) // красный макс, падает синий // красный макс, зелёный падает 
+  {
+    _r = 255;
+    _g = 1530 - colour;
+    _b = 0;
+  }
+
+  _r = _r * ledBright / 100;
+  _g = _g * ledBright / 100;
+  _b = _b * ledBright / 100; 
+  
+  pixels.setPixelColor(ledPosition, pixels.Color(_r, _g, _b)); 
+  pixels.show();    
+  delay(ledSpeed);
+  
+  if (colour + 3 > 1530)
+    colour = 0;
+  else
+    colour += 3;
+  
+  ledPosition += 1;
+  if (ledPosition >= pix_count)
+    ledPosition = 0;
+}
+
+void Randomizer ()
+{
+  pixels.setPixelColor(ledPosition, pixels.Color((random (0,255) * ledBright / 100), (random (0,255) * ledBright / 100), (random (0,255) * ledBright / 100))); 
+  pixels.show();    
+  delay(ledSpeed);
+  ledPosition += 1;
+  if (ledPosition >= pix_count)
+    ledPosition = 0;
+}
+
 void handleForm() 
 {
   String str_type = server.arg("str_type");
@@ -173,7 +238,6 @@ void handleForm()
     return;
   }
   
-  
   if (str_type == "Static"){
     workIsFinished = false;
     lightningType = 1; 
@@ -184,6 +248,16 @@ void handleForm()
     workIsFinished = false;
     lightningType = 2;
     return;
+  }
+  if (str_type == "WeelColourReverse"){
+  workIsFinished = false;
+  lightningType = 3;
+  return;
+  }
+  if (str_type == "Random"){
+  workIsFinished = false;
+  lightningType = 4;
+  return;
   }
 }
 
@@ -237,16 +311,22 @@ void setup(void) {
 void loop(void) { 
   server.handleClient();
 
-  if ( workIsFinished == false){
+  if (workIsFinished == false){
     switch (lightningType) {
         case 1:
-          staticColour(int_R, int_G, int_B, ledSpeed, ledBright);
+          staticColour(int_R, int_G, int_B);
           break;;
         case 2:
-          WeelColour(ledSpeed, ledBright);
-          break;
-        break;;
-    }  
+          WeelColour();
+          break;;
+        case 3:
+          WeelColourReverse();
+          break;;
+        case 4:
+          Randomizer();
+          break;;
+    } 
+    //mem info
     uint32_t free = system_get_free_heap_size();
     Serial.print("free mem after effect: ");
     Serial.println(free);
