@@ -18,7 +18,6 @@ int int_R = 0;
 int int_G = 0;
 int int_B = 0;
 bool workIsFinished = true;
-bool globalBreak = false;
 String mainPage = "";
 
 
@@ -165,16 +164,16 @@ void Randomizer (){
 }
 
 void handleForm(){
-  mainPageupdater();
   String str_type = server.arg("str_type");
   int_R = (server.arg("str_R")).toInt();;
   int_G = (server.arg("str_G")).toInt();
   int_B = (server.arg("str_B")).toInt();
   ledSpeed = (server.arg("Speed")).toInt();
   ledBright = (server.arg("Brightness")).toInt();
-  globalBreak = (server.arg("Break")).toInt();
+  workIsFinished = (server.arg("Break")).toInt();
   server.send(200, "text/html", mainPage);
-  if (globalBreak == 1) {
+  mainPageupdater();
+  if (workIsFinished == 1) {
     lightningType = 0;
     return;
   } 
@@ -209,18 +208,19 @@ void handleRoot(){
 
 void mainPageupdater() {
   mainPage = "<!DOCTYPE html><html><body><form action=\"/action_page\">Type:";
-  mainPage += "<br><select size=\"1\" name=\"str_type\"><option>Static</option><option>WeelColour</option><option>WeelColourReverse</option><option>Random</option><option>Fill</option><select>";
+  mainPage += "<br><select size=\"1\" name=\"str_type\"><option>none</option><option>Static</option><option>WeelColour</option><option>WeelColourReverse</option><option>Random</option><option>Fill</option><select>";
   mainPage += "<br>Red colour:<br><input type=\"text\" name=\"str_R\" value=" + String(int_R) + ">";
   mainPage += "<br>Green colour:<br><input type=\"text\" name=\"str_G\" value=" + String(int_G) + ">";
   mainPage += "<br>Blue colour:<br><input type=\"text\" name=\"str_B\" value=" + String(int_B) + ">";
   mainPage += "<br>Speed:<br><input type=\"text\" name=\"Speed\" value=" + String(ledSpeed) + ">";
   mainPage += "<br>Brightness:<br><input type=\"text\" name=\"Brightness\" value=" + String(ledBright) + ">";
-  mainPage += "<br>Break:<br><input type=\"text\" name=\"Break\" value=\"0\"><br>";
+  mainPage += "<br>Break:<br><input type=\"text\" name=\"Break\" value=" + String(workIsFinished)+ "><br>";
   mainPage += "<br><input type=\"submit\" value=\"Submit\"></body></html>"; 
 }
 
 void setup(void){
   pixels.begin();
+  mainPageupdater();
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
@@ -246,6 +246,9 @@ void loop(void){
   server.handleClient();
   if (workIsFinished == false){
     switch (lightningType) {
+        case 0:
+          workIsFinished = true;
+          break;;
         case 1:
           staticColour();
           break;;
