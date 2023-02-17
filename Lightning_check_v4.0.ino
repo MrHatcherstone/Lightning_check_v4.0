@@ -3,7 +3,7 @@
 #include <ESP8266WebServer.h> //библиотека server
 #include <Esp.h>
 #include "wifiAuth.h"
-
+#hello
 #define PIN D8
 //#define LED1 D4 // встроенная светилка ESP-12E
 #define pix_length 60 // половина длины ленты
